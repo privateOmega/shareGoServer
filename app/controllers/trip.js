@@ -2,7 +2,9 @@ const config                = require('../configurations/config');
 const user                  = require('../models/user');
 const trip                  = require('../models/trip');
 const passengertrip         = require('../models/passengers');
-const func                  = require('../functions/trip');
+const extraFunctions         = require('../functions/trip');
+const completedtrips         = require('../models/completedTrips');
+const cancelledtrips         = require('../models/cancelledTrips');
 
 exports.createTrip = (req, res, next) => {
   const errors = req.validationErrors();
@@ -80,22 +82,22 @@ exports.passengerJoinTrip = (req, res, next) => {
     }
     else
     {
-      passengerTrip.save((err) => {
-          if (err) { return next(err); }
-      });
-     trip.findOne({username: req.body.driverUsername}, function (err, tripUser) {
-       if(tripUser.passengerCount<tripUser.seats)
-        {
-         tripUser.passengerCount +=1;
-         tripUser.pId.push(existingRide._id);
-         tripUser.save(function (err) {
-           if(err) {
-             console.error('ERROR!');
-           }
-         });
-        }
-       else console.error('SEATS FULL !');
-     });
+    	passengerTrip.save((err) => {
+      		if (err) { return next(err); }
+ 	    });
+	   trip.findOne({username: req.body.driverUsername}, function (err, tripUser) {
+	     if(tripUser.passengerCount<tripUser.seats)
+		    {
+			   tripUser.passengerCount +=1;
+			   tripUser.pId.push(existingRide._id);
+			   tripUser.save(function (err) {
+  			   if(err) {
+  			     console.error('ERROR!');
+  			   }
+			   });
+		    }
+	     else console.error('SEATS FULL !');
+	   });
     res.json({ success: true, message: 'Trip is approved' });
     return;
    }
@@ -109,7 +111,7 @@ exports.endPassengerTrip = (req, res, next) => {
   if (errors) {
     res.json({ success: false, message: errors });
   }
-  var Trip = new passengertrip({
+  var passengerTrip = new passengertrip({
     startLatitude:req.body.startLatitude,
     startLongitude:req.body.startLongitude,
     endLatitude:req.body.endLatitude,
@@ -123,21 +125,51 @@ exports.endPassengerTrip = (req, res, next) => {
   .on('data', function(existingTrip){
     if (existingRide.username == req.body.username) {
       console.log("Trip exists");
-    var tripComplete = func.checkDestinationReached(req.body.currentLatitude,req.body.currentLongitude,
-              req.body.endLatitude,req.body.endLongitude);
-     if(tripcomplete==true || existingRide.status=='CANC'){
-      var distanceCovered = func.findDistanceCovered(req.body.startLatitude,req.body.startLongitude,
-                req.body.endLatitude,req.body.endLongitude);
-    Trip.remove({ _id: req.body.id }, function(err) {
-      if (!err) {
-          console.log("RIDE DELETED");
-      }
-      else {
-           console.log("RIDE DELETE ERROR");
-      }
+    var tripComplete = extraFunctions.checkDestinationReached(req.body.currentLatitude,req.body.currentLongitude,
+							req.body.endLatitude,req.body.endLongitude);
+	   if(tripcomplete==true){
+
+       var distanceCovered = extraFunctions.findDistanceCovered(req.body.startLatitude,req.body.startLongitude,
+								req.body.endLatitude,req.body.endLongitude);
+		passengerTrip.remove({ _id: req.body.id }, function(err) {
+			if (!err) {
+			    console.log("RIDE DELETED");
+			}
+			else {
+			     console.log("RIDE DELETE ERROR");
+			}
+		});
+    trip.findOne({username: req.body.driverUsername}, function (err, tripUser) {
+       if(tripUser.passengerCount>0)
+        {
+         tripUser.passengerCount -=1;
+         tripUser.pId.pop(existingRide._id);
+         tripUser.save(function (err) {
+           if(err) {
+             console.error('ERROR!');
+           }
+         });
+        }
+       else console.error('SEATS ZERO !');
+        var completedTrips = new completedtrips({
+          startLatitude:req.body.startLatitude,
+          startLongitude:req.body.startLongitude,
+          endLatitude:req.body.endLatitude,
+          endLongitude:req.body.endLongitude,
+          user:req.body.username,
+          time:tripUser.time,
+          routeId:tripUser.routeId,
+          date:tripUser.date,
+          role:'PAX'
+        });
+        completedTrips.save((err) => {
+      if (err) { return next(err); }
+      else  console.error('COULD NOT SAVE completedTrips');
     });
-    res.write(JSON.stringify({ distance:distanceCovered},{ success: true }));
-     }
+
+     });
+		res.write(JSON.stringify({ distance:distanceCovered},{ success: true }));
+	   }
    }
    else
       res.write(JSON.stringify({ success: false }));
@@ -147,29 +179,52 @@ exports.endPassengerTrip = (req, res, next) => {
 
 exports.endDriverTrip = (req, res, next) => {
   const errors = req.validationErrors();
-  if (errors) {
+  if (errors)
+  {
     res.json({ success: false, message: errors });
   }
   res.writeHead(200, {"Content-Type": "application/json"});
   trip.findOne({username:req.body.username}).cursor()
   .on('data', function(existingTrip){
-    if (existingRide.username == req.body.username) {
+    if (existingRide.username == req.body.username)
+    {
       console.log("Trip exists !");
-      var tripComplete = func.checkDestinationReached(req.body.currentLatitude,req.body.currentLongitude,
-              req.body.endLatitude,req.body.endLongitude);
-     if(tripcomplete==true || existingRide.status=='CAN'){
-      var distanceCovered = func.findDistanceCovered(req.body.startLatitude,req.body.startLongitude,
-                req.body.endLatitude,req.body.endLongitude);
-      trip.remove({ _id: req.body._id }, function(err) {
-        if (!err) {
-            console.log("RIDE DELETED");
-        }
-        else {
-             console.log("RIDE DELETE ERROR");
-        }
-      });
-      res.write(JSON.stringify({ distance:distanceCovered},{ success: true }));
-     }
+      var tripComplete = extraFunctions.checkDestinationReached(req.body.currentLatitude,req.body.currentLongitude,
+							req.body.endLatitude,req.body.endLongitude);
+	    if(tripcomplete==true)
+      {
+	           var distanceCovered = extraFunctions.findDistanceCovered(req.body.startLatitude,req.body.startLongitude,
+								req.body.endLatitude,req.body.endLongitude);
+             if(existingRide.passengerCount==0)
+             {
+                trip.remove({ _id: req.body._id }, function(err) {
+  			    if (!err)
+                {
+          			  console.log("RIDE DELETED");
+                  var completedTrips = new completedtrips({
+                    startLatitude:existingRide.startLatitude,
+                    startLongitude:existing.startLongitude,
+                    endLatitude:existingRide.endLatitude,
+                    endLongitude:existingRide.endLongitude,
+                    user:existingRide.username,
+                    time:existingRide.time,
+                    routeId:existingRide.routeId,
+                    date:existingRide.date,
+                    role:'DRIVER'
+                 });
+                 completedTrips.save((err) => {
+                   if (err) { return next(err); }
+                     else  console.error('COULD NOT SAVE completedTrips');
+  		          	});
+                }
+  			      else {
+  			       console.log("RIDE DELETE ERROR");
+  					   }
+  				});
+		  		res.write(JSON.stringify({ distance:distanceCovered},{ success: true }));
+    	     }
+	 }
+   else  res.write(JSON.stringify({ message:'passengerCount not 0'},{ success: false }));
    }
    else
       res.write(JSON.stringify({ success: false }));
@@ -177,8 +232,107 @@ exports.endDriverTrip = (req, res, next) => {
   });
 };
 
-//CANCEL TRIP BOTH
-//REDUCE COUNT WHEN TRIP ENDS
+//RECIEVES FROM REQUEST as profile user as USERNAME AND ROLE as DRIVER OR PAX 
+exports.cancelTrip = (req, res, next) => {
+  const errors = req.validationErrors();
+  if (errors) {
+    res.json({ success: false, message: errors });
+  }
+  res.writeHead(200, {"Content-Type": "application/json"});
+  if(req.body.role=='DRIVER')
+  {
+      trip.findOne({username:req.body.username}).cursor()
+      .on('data', function(existingTrip)
+      {
+          if (existingRide.username == req.body.username)
+          {
+             console.log("Trip exists !");
+             if(existingRide.passengerCount>0)
+             {
+                for(var i=0;i<existingRide.pId.length;i++)
+                passengertrip.findOneAndRemove({username: 'existingRide.pId[i]'}, function(err){console.log('ERROR')});
+             }
+             trip.remove({ _id: req.body._id }, function(err)
+             {
+                     console.log("RIDE DELETED");
+                     var cancelledTrips= new cancelledtrips({
+                          startLatitude:existingRide.startLatitude,
+                          startLongitude:existing.startLongitude,
+                          endLatitude:existingRide.endLatitude,
+                          endLongitude:existingRide.endLongitude,
+                          user:existingRide.username,
+                          time:existingRide.time,
+                          routeId:existingRide.routeId,
+                          date:existingRide.date,
+                          role:'DRIVER',
+                          reason:'some reason'
+                      });
+                      cancelledTrips.save((err) => {
+                      if (err)  return next(err);
+                      else  console.error('COULD NOT SAVE cancelledTrips');
+                      });
+             });
+          }
+        });
+  }
+
+  if(req.body.role=='PAX')
+  {
+      passengertrip.findOne({username:req.body.username}).cursor()
+      .on('data', function(existingTrip){
+        if (existingRide.username == req.body.username) {
+        console.log("Trip exists !");
+             passengertrip.remove({ _id: req.body._id }, function(err)
+             {
+                     console.log("RIDE DELETED");
+                     var cancelledTrips= new cancelledtrips({
+                          startLatitude:existingRide.startLatitude,
+                          startLongitude:existing.startLongitude,
+                          endLatitude:existingRide.endLatitude,
+                          endLongitude:existingRide.endLongitude,
+                          user:existingRide.username,
+                          time:0, //For now
+                          routeId:0, //For now
+                          date:0, //For now
+                          role:'PAX',
+                          reason:'some pax reason'
+                      });
+                      cancelledTrips.save((err) => {
+                      if (err)  return next(err);
+                      else  console.error('COULD NOT SAVE cancelledTrips');
+                      });
+             });
+          }
+        });
+
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
