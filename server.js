@@ -46,6 +46,9 @@ app.use(errorHandler());
   console.log(req.headers); 
 });*/
 // App Routes
+app.get('/', function(req, res) {
+  res.json({ message: 'Welcome to the coolest API on earth!' });
+});
 app.post('/login',userController.postLogin);
 app.post('/signup', userController.postSignup);
 app.post('/forgot', userController.forgot);
