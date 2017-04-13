@@ -27,7 +27,7 @@ exports.createTrip = (req, res, next) => {
     date:req.body.date,
     passengerCount:0
   });
-  console(Trip);
+  console.log(Trip);
   res.writeHead(200, {"Content-Type": "application/json"});
   trip.find({$and:[{username:req.body.username},{vId:req.body.vId},{status:'OTG'}]}).cursor()
   .on('data', function(existingRide){
