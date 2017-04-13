@@ -30,7 +30,9 @@ exports.createTrip = (req, res, next) => {
   console.log(Trip);
   res.writeHead(200, {"Content-Type": "application/json"});
   trip.find({$and:[{username:req.body.username},{vId:req.body.vId},{status:'OTG'}]}).cursor()
-  .on('data', function(existingRide){
+  .on('data', function(err, existingRide){
+    if(err)
+      console.log("ERORR"+err);
     console.log(existingRide._id);
     if (existingRide.username == req.body.username) {
       console.log("username exists");
@@ -48,6 +50,7 @@ exports.createTrip = (req, res, next) => {
       return ;
     }
     Trip.save((err) => {
+      console.log("Trip saved");
       if (err) { return next(err); }
     });
     res.json({ success: true, message: 'Trip is approved' });
