@@ -28,9 +28,10 @@ exports.createTrip = (req, res, next) => {
     passengerCount:0
   });
   console.log(Trip);
+  console.log("erorrrrr");
   res.writeHead(200, {"Content-Type": "application/json"});
-  trip.find({$and:[{username:req.body.username},{status:'OTG'}]}).cursor()
-  .on('data', function(existingRide){
+  trip.find({$and:[{username:req.body.username},{status:'OTG'}]}, function(existingRide){
+    console.log(existingRide);
     if(!existingRide)
       console.log("none whatsover haha");
     console.log(existingRide._id);
