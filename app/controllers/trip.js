@@ -29,7 +29,7 @@ exports.createTrip = (req, res, next) => {
   });
   console.log(Trip);
   res.writeHead(200, {"Content-Type": "application/json"});
-  trip.find({$and:[{username:req.body.username},{vId:req.body.vId},{status:'OTG'}]}).cursor()
+  trip.find({$and:[{username:req.body.username},{status:'OTG'}]}).cursor()
   .on('data', function(existingRide){
     console.log(existingRide._id);
     if (existingRide.username == req.body.username) {
@@ -37,21 +37,18 @@ exports.createTrip = (req, res, next) => {
       res.write(JSON.stringify({rUname: 'Ride with that username already exists' }));
       return ;
     }
-    else if (existingRide.vId==req.body.vId) {
-      console.log("vehicle exists");
-      res.write(JSON.stringify({ rEmail: 'Ride with that vId already exists' }));
-      return ;
-    }
     else if (existingRide.status=='OTG'){
       console.log("the ride is OTG");
       res.write(JSON.stringify({ rStatus: 'OTG' }));
       return ;
     }
-    Trip.save((err) => {
-      if (err) { return next(err); }
-    });
-    res.json({ success: true, message: 'Trip is approved' });
-    return;
+    if(!existingRide){
+      Trip.save((err) => {
+        if (err) { return next(err); }
+      });
+      res.json({ success: true, message: 'Trip is approved' });
+      return;
+    }
   });
   res.write(JSON.stringify({ success: false }));
   res.end();
