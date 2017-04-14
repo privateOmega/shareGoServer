@@ -31,6 +31,8 @@ exports.createTrip = (req, res, next) => {
   res.writeHead(200, {"Content-Type": "application/json"});
   trip.find({$and:[{username:req.body.username},{status:'OTG'}]}).cursor()
   .on('data', function(existingRide){
+    if(!existingRide)
+      console.log("none whatsover haha");
     console.log(existingRide._id);
     if (existingRide.username == req.body.username) {
       console.log("username exists");
