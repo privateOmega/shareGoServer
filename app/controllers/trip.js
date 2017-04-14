@@ -29,40 +29,31 @@ exports.createTrip = (req, res, next) => {
   });
   console.log(Trip);
   res.writeHead(200, {"Content-Type": "application/json"});
-  var query = {$and:[{username:req.body.username},{vId:req.body.vId},{status:'OTG'}]},
-      options = {upsert:true,new:true};
-  trip.findOneAndUpdate(query,options,function(err, existingRide){
-    if(!err){
-      if(!existingRide){
-        /*Trip.save((err) => {
-          console.log("Trip saved");
-          if (err) { return next(err); }
-        });
-        */
-        res.json({ success: true, message: 'Trip is approved' });
-        return;
-      }
-      else{
-        console.log(existingRide._id);
-        if (existingRide.username == req.body.username) {
-          console.log("username exists");
-          res.write(JSON.stringify({rUname: 'Ride with that username already exists' }));
-          return ;
-        }
-        else if (existingRide.vId==req.body.vId) {
-          console.log("vehicle exists");
-          res.write(JSON.stringify({ rEmail: 'Ride with that vId already exists' }));
-          return ;
-        }
-        else if (existingRide.status=='OTG'){
-          console.log("the ride is OTG");
-          res.write(JSON.stringify({ rStatus: 'OTG' }));
-          return ;
-        }
-        res.write(JSON.stringify({ success: false }));
-      }
+  trip.find({$and:[{username:req.body.username},{vId:req.body.vId},{status:'OTG'}]}).cursor()
+  .on('data', function(existingRide){
+    console.log(existingRide._id);
+    if (existingRide.username == req.body.username) {
+      console.log("username exists");
+      res.write(JSON.stringify({rUname: 'Ride with that username already exists' }));
+      return ;
     }
+    else if (existingRide.vId==req.body.vId) {
+      console.log("vehicle exists");
+      res.write(JSON.stringify({ rEmail: 'Ride with that vId already exists' }));
+      return ;
+    }
+    else if (existingRide.status=='OTG'){
+      console.log("the ride is OTG");
+      res.write(JSON.stringify({ rStatus: 'OTG' }));
+      return ;
+    }
+    Trip.save((err) => {
+      if (err) { return next(err); }
+    });
+    res.json({ success: true, message: 'Trip is approved' });
+    return;
   });
+  res.write(JSON.stringify({ success: false }));
   res.end();
 };
 
