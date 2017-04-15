@@ -6,11 +6,80 @@ const extraFunctions         = require('../functions/trip');
 const completedtrips         = require('../models/completedTrips');
 const cancelledtrips         = require('../models/cancelledTrips');
 
+exports.getTripDetails = (req,res,next) =>{
+  console.log(req.body);
+  if(req.body.role=="driver"){
+    trip.findOne({$and:[{_id:req.body._id},{status:'OTG'}]}, (err, existingRide) => {
+      if (err) { return next(err); }
+      if (existingRide) {
+        res.json({
+          success: true,
+          startLatitude: existingRide.startLatitude,
+          startLongitude: existingRide.startLongitude,
+          endLatitude: existingRide.endLatitude,
+          endLongitude: existingRide.endLongitude,
+          latitude: existingRide.latitude,
+          longitude: existingRide.longitude
+        });
+      }
+    });
+  }
+  else if(req.body.role== "pax"){
+      passengertrip.findOne({$and:[{_id:req.body._id},{status:'OTG'}]}, (err, existingRide2) => {
+        if (err) { return next(err); }
+        if (existingRide2) {
+          res.json({
+            success: true,
+            startLatitude: existingRide2.startLatitude,
+            startLongitude: existingRide2.startLongitude,
+            endLatitude: existingRide2.endLatitude,
+            endLongitude: existingRide2.endLongitude,
+            latitude: existingRide2.currentLatitude,
+            longitude: existingRide2.currentLongitude
+          });
+        }
+      });
+  }
+};
+
+exports.getTrip = (req,res,next) =>{
+  console.log(req.body.user);
+  trip.findOne({$and:[{user:req.body.user},{status:'OTG'}]}, (err, existingRide) => {
+    if (err) { return next(err); }
+    if (existingRide) {
+      console.log("haha");
+      console.log(existingRide);
+      res.json({
+        success: true,
+        role: "driver",
+        _id: existingRide._id
+      });
+    }
+    else{
+      passengertrip.findOne({$and:[{username:req.body.user},{status:'OTG'}]}, (err, existingRide2) => {
+        if (err) { return next(err); }
+        if (existingRide2) {
+          console.log("haha 2");
+          console.log(existingRide2);
+          res.json({
+            success: true,
+            role: "pax",
+            _id: existingRide2._id
+          });
+        }
+        else
+          res.json({success: false,message: 'no existing ride'});
+      });
+    }
+  });
+};
+
 exports.createTrip = (req, res, next) => {
   const errors = req.validationErrors();
   if (errors) {
     res.json({ success: false, message: errors });
   }
+  console.log(req.body.user);
   var Trip = new trip({
     vId:req.body.vId,
     status:'OTG',
@@ -18,7 +87,7 @@ exports.createTrip = (req, res, next) => {
     startLongitude:req.body.startLongitude,
     endLatitude:req.body.endLatitude,
     endLongitude:req.body.endLongitude,
-    user:req.body.username,
+    user:req.body.user,
     seats:req.body.seats,
     time:req.body.time,
     routeId:req.body.routeId,
@@ -27,34 +96,23 @@ exports.createTrip = (req, res, next) => {
     date:req.body.date,
     passengerCount:0
   });
-  console.log(Trip);
-  console.log("erorrrrr");
-  res.writeHead(200, {"Content-Type": "application/json"});
-  trip.find({$and:[{username:req.body.username},{status:'OTG'}]}, function(existingRide){
-    console.log(existingRide);
-    if(!existingRide)
+  trip.find({$and:[{user:req.body.user},{status:'OTG'}]}, function(err,existingRide){
+     if(existingRide.length){
+      res.json({ success: false});
+    }
+    else{
       console.log("none whatsover haha");
-    console.log(existingRide._id);
-    if (existingRide.username == req.body.username) {
-      console.log("username exists");
-      res.write(JSON.stringify({rUname: 'Ride with that username already exists' }));
-      return ;
-    }
-    else if (existingRide.status=='OTG'){
-      console.log("the ride is OTG");
-      res.write(JSON.stringify({ rStatus: 'OTG' }));
-      return ;
-    }
-    if(!existingRide){
-      Trip.save((err) => {
-        if (err) { return next(err); }
+      Trip.save((err,trip) => {
+        if (err) {
+          console.log(err);
+          return next(err);
+        }
+        console.log("found trip id as "+trip._id);
+        res.json({ success: true, _id: trip._id});
       });
-      res.json({ success: true, message: 'Trip is approved' });
       return;
     }
   });
-  res.write(JSON.stringify({ success: false }));
-  res.end();
 };
 
 exports.passengerJoinTrip = (req, res, next) => {

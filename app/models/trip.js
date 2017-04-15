@@ -2,7 +2,7 @@ const mongoose  = require('mongoose');
 
 var tripSchema = new mongoose.Schema({
   vId: {type:String, required: true},
-  status: {type:Boolean, required: true},
+  status: {type:String, required: true},
   startLatitude: {type:String, required: true},
   startLongitude: {type:String, required: true},
   endLatitude: {type:String, required: true},

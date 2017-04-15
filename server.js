@@ -81,7 +81,8 @@ apiRoutes.post('/updateAccount', userController.postUpdateProfile);
 apiRoutes.post('/getBlock', userController.getBlockedList);
 apiRoutes.post('/unBlock', userController.unBlockUser);
 apiRoutes.post('/newTrip', tripController.createTrip);
-
+apiRoutes.post('/getTrip', tripController.getTrip);
+apiRoutes.post('/getTripDetails', tripController.getTripDetails);
 //app.post('/reset/:token', userController.postReset);
 
 
