@@ -205,8 +205,8 @@ exports.sos = (req, res) => {
         to: 'policeofsharego@gmail.com',
         from: 'sharegoproj@gmail.com',
         subject: 'SOS',
-        text: 'You are receiving this because '+user.name+' (user) of sharego application have requested for your assistance.\n\n' +
-          'Please call this number '+user.number+'.'+'The last known location is '+req.body.latitude+','+req.body.longitude+'please ignore this email if you have already recived this email.\n'
+        text: 'You are receiving this because '+user.name+' , user of Sharego application has requested for your immediate assistance.\n\n' +
+          'Her given contact number is '+user.number+'.'+'Her last known gps location is ('+req.body.latitude+' , '+req.body.longitude+' ). Please ignore this email if you have already recived this email.\n'
       };
       transporter.sendMail(mailOptions, function(err) {
         res.json({ success: true, message: 'An e-mail has been sent to police with further instructions.' });
