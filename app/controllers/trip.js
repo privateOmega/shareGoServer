@@ -47,8 +47,8 @@ exports.getTrip = (req,res,next) =>{
   trip.findOne({$and:[{user:req.body.user},{status:'OTG'}]}, (err, existingRide) => {
     if (err) { return next(err); }
     if (existingRide) {
-      console.log("haha");
-      console.log(existingRide);
+      //console.log("haha");
+      //console.log(existingRide);
       res.json({
         success: true,
         role: "driver",
@@ -365,7 +365,7 @@ exports.cancelTrip = (req, res, next) => {
   }
   if(req.body.role=='driver')
   {
-      trip.findOne({username:req.body.username}, function(err,existingTrip){
+      trip.findOne({user:req.body.username}, function(err,existingTrip){
           if (existingTrip){
              console.log("Trip exists !");
              if(existingTrip.passengerCount>0){
