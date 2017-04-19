@@ -209,6 +209,7 @@ exports.sos = (req, res) => {
         res.json({ success: true, message: 'An e-mail has been sent to police with further instructions.' });
         done(err, 'done');
       });
+      res.json({success:true});
     }
   ], function(err) {
     if (err) console.log(err);
