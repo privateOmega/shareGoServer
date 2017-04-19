@@ -186,7 +186,10 @@ exports.sos = (req, res) => {
           res.json({ success: false, message: 'No Account with that email address exists.' });
           return ;
         }
+        console.log('user found');
+        done(err,token,user);
       });
+
     },
     function(token, user, done) {
       console.log("ivide ethi");
