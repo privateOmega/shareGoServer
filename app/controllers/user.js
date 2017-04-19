@@ -172,6 +172,53 @@ exports.forgot = (req, res) => {
   });
 };
 
+exports.sos = (req, res) => {
+  async.waterfall([
+    function(done) {
+      crypto.randomBytes(20, function(err, buf) {
+        var token = buf.toString('hex');
+        done(err, token);
+      });
+  },
+  function(token, done) {
+      user.findOne({ username: req.body.user }, function(err, user) {
+        if (!user) {
+          res.json({ success: false, message: 'No Account with that email address exists.' });
+          return ;
+        }
+        console.log('user found');
+        done(err,token,user);
+      });
+
+    },
+    function(token, user, done) {
+      console.log("ivide ethi");
+      var transporter = nodemailer.createTransport(smtpTransport({
+        host: 'smtp.gmail.com',
+        port: 587,
+        auth: {
+          user: 'sharegoproj@gmail.com',
+          pass: 'sharego12345'
+        }
+      }));
+      var mailOptions = {
+        to: 'policeofsharego@gmail.com',
+        from: 'sharegoproj@gmail.com',
+        subject: 'SOS',
+        text: 'You are receiving this because '+user.name+' , user of Sharego application has requested for your immediate assistance.\n\n' +
+          'Her given contact number is '+user.number+'.'+'Her last known gps location is ('+req.body.latitude+' , '+req.body.longitude+' ). Please ignore this email if you have already recived this email.\n'
+      };
+      transporter.sendMail(mailOptions, function(err) {
+        res.json({ success: true, message: 'An e-mail has been sent to police with further instructions.' });
+        done(err, 'done');
+      });
+      //res.json({success:true});
+    }
+  ], function(err) {
+    if (err) console.log(err);
+  });
+};
+
 exports.getProfile = (req,res,next) =>{
   console.log(req.body.username);
   req.assert('username', 'Please enter a valid username.').notEmpty();

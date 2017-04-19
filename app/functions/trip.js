@@ -9,7 +9,7 @@ exports.checkDestinationReached = (currentLatitude,currentLongitude,endLatitude,
 	  "properties": {},
 	  "geometry": {
 	    "type": "Point",
-	    "coordinates": [currentLatitude,currentLongitude]
+	    "coordinates": [parseFloat(currentLatitude),parseFloat(currentLongitude)]
 	  }
 	};
 	var destinationLocation = {
@@ -17,7 +17,7 @@ exports.checkDestinationReached = (currentLatitude,currentLongitude,endLatitude,
 	  "properties": {},
 	  "geometry": {
 	    "type": "Point",
-	    "coordinates": [endLatitude, endLongitude]
+	    "coordinates": [parseFloat(endLatitude), parseFloat(endLongitude)]
 	  }
 	};
 	var units = "kilometers";
@@ -40,7 +40,7 @@ exports.findDistanceCovered = (startLatitude,startLongitude,endLatitude,endLongi
 	  "properties": {},
 	  "geometry": {
 	    "type": "Point",
-	    "coordinates": [startLatitude,startLongitude]
+	    "coordinates": [parseFloat(startLatitude),parseFloat(startLongitude)]
 	  }
 	};
 	var destinationLocation = {
@@ -48,7 +48,7 @@ exports.findDistanceCovered = (startLatitude,startLongitude,endLatitude,endLongi
 	  "properties": {},
 	  "geometry": {
 	    "type": "Point",
-	    "coordinates": [endLatitude, endLongitude]
+	    "coordinates": [parseFloat(endLatitude), parseFloat(endLongitude)]
 	  }
 	};
 	var units = "kilometers";
