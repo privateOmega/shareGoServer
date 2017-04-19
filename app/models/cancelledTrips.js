@@ -14,5 +14,5 @@ var cancelledTrips = new mongoose.Schema({
  }, { timestamps: true });
 
 // CREATE MODEL
-var cancelledTrips = mongoose.model('cancelledTrips', cancelledTrips);
+var cancelledTrips = mongoose.model('cancelledTrip', cancelledTrips);
 module.exports = cancelledTrips;
