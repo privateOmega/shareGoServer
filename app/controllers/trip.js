@@ -169,6 +169,40 @@ exports.passengerJoinTrip = (req, res, next) => {
 
 };
 
+exports.paxConnectToDriver = (req, res, next) => {
+  console.log("Passenger Connect to Driver inside trip.js ethi");
+  const errors = req.validationErrors();
+  if (errors) {
+    res.json({ success: false, message: errors });
+   }
+   else {
+      trip.findOne({user: req.body.driverUser}, function (err, tripUser) {
+
+         if (tripUser){
+         if(tripUser.passengerCount<tripUser.seats)
+          {
+           tripUser.passengerCount +=1;
+           tripUser.pId.push(req.body.paxUser);
+           tripUser.save(function (err) {
+             if(err) console.error('ERROR!');
+            res.json({ success: true});
+            
+           });
+          }
+         else {
+           console.error('SEATS FULL !'); 
+          res.json({ success: false});
+
+          }
+        }
+        else {   console.log("driver does not exist ");
+                 res.json({ success: false});
+            }
+     });
+    }
+    return;
+   };
+
 exports.passengerMatchAllDrivers = (req, res, next) => {
   const errors = req.validationErrors();
   if (errors) {
@@ -213,21 +247,6 @@ exports.passengerMatchAllDrivers = (req, res, next) => {
   }
   return;
    });
- 
- //res.json({driverList:driverUserList , driverLatitude:driverLatitudeList , driverLongitude:driverLongitudeList});
-  /*
-  var json = JSON.stringify({
-        success:true,
-        driverUserName: driverUserList,
-        coordinate : { 
-                       lat : driverLatitudeList,
-                       long: driverLongitudeList
-                     }
-  });
-  res.write(json);
-  
-
- res.end();*/
 };
 
 
