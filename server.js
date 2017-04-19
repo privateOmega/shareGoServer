@@ -16,6 +16,8 @@ const expressStatusMonitor  = require('express-status-monitor');
 const multer                = require('multer');
 const bcrypt                = require('bcrypt-nodejs');
 const nodemailer            = require('nodemailer');
+const turf                  = require('@turf/distance');
+
 // Configurations
 const config                = require('./app/configurations/config');
 const port                  = process.env.PORT || 8080;
@@ -81,8 +83,10 @@ apiRoutes.post('/updateAccount', userController.postUpdateProfile);
 apiRoutes.post('/getBlock', userController.getBlockedList);
 apiRoutes.post('/unBlock', userController.unBlockUser);
 apiRoutes.post('/newTrip', tripController.createTrip);
+apiRoutes.post('/newPaxTrip', tripController.passengerJoinTrip);
 apiRoutes.post('/getTrip', tripController.getTrip);
 apiRoutes.post('/getTripDetails', tripController.getTripDetails);
+apiRoutes.post('/matchPaxtoDriver', tripController.passengerMatchAllDrivers);
 //app.post('/reset/:token', userController.postReset);
 
 

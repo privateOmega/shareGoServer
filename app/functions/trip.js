@@ -1,6 +1,6 @@
 const trip                  = require('../models/passengers');
-const turfCollect           = require('@turf/collect');
-//turfCollect(points, polys, 'population', 'populationValues')
+const turf                  = require('@turf/distance');
+
 
 
 exports.checkDestinationReached = (currentLatitude,currentLongitude,endLatitude,endLongitude) =>{
@@ -26,7 +26,7 @@ exports.checkDestinationReached = (currentLatitude,currentLongitude,endLatitude,
 	  "type": "FeatureCollection",
 	  "features": [currentLocation, destinationLocation]
 	};
-	var remainingDistance = turf.distance(currentLocation, destinationLocation, units);
+	var remainingDistance = turf(currentLocation, destinationLocation, units);
 	if(remainingDistance<=0.01)
 		successValue=true;
 	else
@@ -57,6 +57,38 @@ exports.findDistanceCovered = (startLatitude,startLongitude,endLatitude,endLongi
 	  "type": "FeatureCollection",
 	  "features": [startLocation, destinationLocation]
 	};
-	var totalDistance = turf.distance(startLocation, destinationLocation, units);
+	var totalDistance = turf(startLocation, destinationLocation, units);
 	return totalDistance;
+};
+
+exports.findNearbyDrivers = (paxLatitude,paxLongitude,driverLatitude,driverLongitude) =>{
+	var paxLocation = {
+	  "type": "Feature",
+	  "properties": {},
+	  "geometry": {
+	    "type": "Point",
+	    "coordinates": [parseFloat(paxLatitude),parseFloat(paxLongitude)]
+	  }
+	};
+	var driverLocation = {
+	  "type": "Feature",
+	  "properties": {},
+	  "geometry": {
+	    "type": "Point",
+	    "coordinates": [parseFloat(driverLatitude), parseFloat(driverLongitude)]
+	  }
+	};
+	var units = "kilometers";
+	var successValue;
+	var points = {
+	  "type": "FeatureCollection",
+	  "features": [paxLocation, driverLocation]
+	};
+	var totalDistance = turf(paxLocation, driverLocation, units);
+	console.log("Pax Lat = "+ parseFloat(paxLatitude));
+	console.log("driver Lat = "+ parseFloat(driverLatitude));
+	console.log("Nearby Distance = "+totalDistance);
+	if(totalDistance<=1)
+	return true;
+	else return false;
 };

@@ -116,54 +116,120 @@ exports.createTrip = (req, res, next) => {
 };
 
 exports.passengerJoinTrip = (req, res, next) => {
+  console.log("Passenger join trip ethi");
   const errors = req.validationErrors();
   if (errors) {
     res.json({ success: false, message: errors });
   }
   var passengerTrip = new passengertrip({
-    username:req.body.username,
-    status:'OTG',
+    username:req.body.user,
+    status:'nodriver',
     startLatitude:req.body.startLatitude,
     startLongitude:req.body.startLongitude,
     currentLatitude:req.body.currentLatitude,
     currentLongitude:req.body.startLongitude,
     endLatitude:req.body.endLatitude,
-    endLongitude:req.body.endLongitude,
+    endLongitude:req.body.endLongitude
   });
-  res.writeHead(200, {"Content-Type": "application/json"});
-  passengertrip.find({username:req.body.username}).cursor()
-  .on('data', function(existingRide){
-    console.log(existingRide._id);
-    if (existingRide.username == req.body.username) {
+  passengertrip.find({username:req.body.user}, function(err,existingRide){
+   //console.log(existingRide._id);
+    if (existingRide.length) {
       console.log("passenger trip already exists");
-      res.write(JSON.stringify({rUname: 'Ride with that username already exists' }));
-      return ;
+       res.json({ success: false});
     }
     else
     {
-    	passengerTrip.save((err) => {
-      		if (err) { return next(err); }
+      console.log("Creating Pax trip");
+    	passengerTrip.save((err,passengertrip) => {
+      		if (err)  return next(err);
+          res.json({ success: true,_id: passengertrip._id});
  	    });
-	   trip.findOne({username: req.body.driverUsername}, function (err, tripUser) {
-	     if(tripUser.passengerCount<tripUser.seats)
-		    {
-			   tripUser.passengerCount +=1;
-			   tripUser.pId.push(existingRide._id);
-			   tripUser.save(function (err) {
-  			   if(err) {
-  			     console.error('ERROR!');
-  			   }
-			   });
-		    }
-	     else console.error('SEATS FULL !');
-	   });
-    res.json({ success: true, message: 'Trip is approved' });
-    return;
+      
+      /*
+	    trip.findOne({user: req.body.driverUsername}, function (err, tripUser) {
+
+         if (tripUser){
+	       if(tripUser.passengerCount<tripUser.seats)
+  		    {
+  			   tripUser.passengerCount +=1;
+  			   tripUser.pId.push(req.body.user);
+  			   tripUser.save(function (err) {
+    			   if(err) console.error('ERROR!');
+  			   });
+  		    }
+	       else console.error('SEATS FULL !');
+        }
+        else {   console.log("driver does not exist ");
+                 res.json({ success: false});
+            }
+	   }); */
    }
+   return;
   });
-  res.write(JSON.stringify({ success: false }));
-  res.end();
+
 };
+
+exports.passengerMatchAllDrivers = (req, res, next) => {
+  const errors = req.validationErrors();
+  if (errors) {
+    res.json({ success: false, message: errors });
+  }
+  console.log("Inside trip.js passengerMatchAllDrivers");
+ var driverUserList = new Array();
+ var driverLatitudeList = new Array();
+ var driverLongitudeList = new Array();
+ var jArr = new Array();
+ trip.find({},function(err, records) {
+  if(err) {
+          console.log('ERROR IN FINDING');
+          driverUserList.push("temp");
+          driverLatitudeList.push(req.body.paxLatitude);
+          driverLongitudeList.push(req.body.paxLongitude);
+
+         }
+  if(records.length){
+      console.log("REC LENGTH :"+records.length);
+      for (var i=0;i<records.length;i++) {
+       var isNearBy = extraFunctions.findNearbyDrivers(req.body.paxLatitude,req.body.paxLongitude,records[i].latitude,records[i].longitude);
+        if(isNearBy)
+        {   console.log("\nFOUND DRIVEr : "+records[i].user);
+           //driverUserList.push(records[i].user);
+         //  console.log("\nHAHAHA"+driverUserList[i]);
+           //driverLatitudeList.push(records[i].latitude);
+           //driverLongitudeList.push(records[i].longitude);
+           var job = {
+            title: records[i].user,
+            coordinates: {
+              latitude: records[i].latitude,
+              longitude: records[i].longitude
+            }
+           }
+           console.log("JOB : "+job);
+           jArr.push(job);
+        }
+      }
+      console.log("KUNDAN"+jArr);
+     res.json({jArr : jArr});
+  }
+  return;
+   });
+ 
+ //res.json({driverList:driverUserList , driverLatitude:driverLatitudeList , driverLongitude:driverLongitudeList});
+  /*
+  var json = JSON.stringify({
+        success:true,
+        driverUserName: driverUserList,
+        coordinate : { 
+                       lat : driverLatitudeList,
+                       long: driverLongitudeList
+                     }
+  });
+  res.write(json);
+  
+
+ res.end();*/
+};
+
 
 exports.endPassengerTrip = (req, res, next) => {
   const errors = req.validationErrors();
