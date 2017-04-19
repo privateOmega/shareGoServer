@@ -361,17 +361,18 @@ exports.endDriverTrip = (req, res, next) => {
 exports.cancelTrip = (req, res, next) => {
   const errors = req.validationErrors();
   if (errors) {
-    res.json({ success: false, message: errors });
+    res.json({ success: false });
   }
-  res.writeHead(200, {"Content-Type": "application/json"});
   if(req.body.role=='driver')
   {
-      trip.findOne({username:req.body.username}, function(existingTrip){
+      trip.findOne({username:req.body.username}, function(err,existingTrip){
           if (existingTrip){
              console.log("Trip exists !");
              if(existingTrip.passengerCount>0){
                 for(var i=0;i<existingTrip.pId.length;i++)
-                passengertrip.findOneAndRemove({username: existingTrip.pId[i]}, function(err){console.log('ERROR')});
+                  passengertrip.findOneAndRemove({username: existingTrip.pId[i]}, function(err){
+                    if(err)console.log('ERROR');
+                  });
              }
              trip.remove({ _id: req.body._id }, function(err){
                      console.log("RIDE DELETED");
@@ -391,16 +392,17 @@ exports.cancelTrip = (req, res, next) => {
                       if (err)  return next(err);
                       console.log('SAVE cancelledTrips');
                       });
-             });
+             });             
           }
         });
       res.json({success: true});
+      return;
   }
   else if(req.body.role=='pax')
   {
-      passengertrip.findOne({username:req.body.username}, function(existingTrip){
+      passengertrip.findOne({username:req.body.username}, function(err,existingTrip){
         if (existingTrip) {
-          console.log("Trip exists !");
+              console.log("Trip exists !");
              passengertrip.remove({ _id: req.body._id }, function(err)
              {
                      console.log("RIDE DELETED");
@@ -424,36 +426,7 @@ exports.cancelTrip = (req, res, next) => {
           }
         });
       res.json({success:true});
+      return;
   }
+  res.json({success:false});
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

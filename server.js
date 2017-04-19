@@ -98,7 +98,7 @@ apiRoutes.post('/getTripDetails', tripController.getTripDetails);
 apiRoutes.post('/setRating',ratingController.setRating);
 apiRoutes.post('/matchPaxtoDriver', tripController.passengerMatchAllDrivers);
 apiRoutes.post('/SOS', userController.sos);
-apiRoutes.post('/cancelTrip', userController.cancelTrip);
+apiRoutes.post('/cancelTrip', tripController.cancelTrip);
 //app.post('/reset/:token', userController.postReset);
 
 
