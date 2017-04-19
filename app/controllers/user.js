@@ -181,7 +181,7 @@ exports.sos = (req, res) => {
       });
   },
   function(token, done) {
-      user.findOne({ user: req.body.user }, function(err, user) {
+      user.findOne({ username: req.body.user }, function(err, user) {
         if (!user) {
           res.json({ success: false, message: 'No Account with that email address exists.' });
           return ;
