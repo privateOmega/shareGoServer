@@ -181,7 +181,7 @@ exports.sos = (req, res) => {
       });
   },
   function(token, done) {
-      user.findOne({ email: req.body.email }, function(err, user) {
+      user.findOne({ user: req.body.user }, function(err, user) {
         if (!user) {
           res.json({ success: false, message: 'No Account with that email address exists.' });
           return ;
@@ -189,6 +189,7 @@ exports.sos = (req, res) => {
       });
     },
     function(token, user, done) {
+      console.log("ivide ethi");
       var transporter = nodemailer.createTransport(smtpTransport({
         host: 'smtp.gmail.com',
         port: 587,
