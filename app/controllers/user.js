@@ -9,6 +9,7 @@ const block                 = require('../models/block');
 const moment                = require('moment');
 const http                  = require('http');
 const smtpTransport         = require('nodemailer-smtp-transport');
+const rating                  = require('../models/rating');
 
 exports.postLogin = (req, res, next) => {
   req.assert('username', 'Username is not valid').notEmpty();
@@ -48,22 +49,9 @@ exports.logout = (req, res) => {
 
 // Signup
 exports.postSignup = (req, res, next) => {
-  req.assert('username', 'Username cannot be empty !').notEmpty();
-  req.assert('email', 'Email cannot be empty').notEmpty();
-  req.assert('email', 'Email is not valid').isEmail();
-  req.assert('password', 'Password must be at least 4 characters long').len(4);
-  req.assert('confirmPassword', 'Passwords do not match').equals(req.body.password);
-  req.assert('gender', 'Gender cannot be empty !').notEmpty();
-  req.assert('number', 'Phone number cannot be empty !').notEmpty();
-  req.assert('state', 'State cannot be empty !').notEmpty();
-  req.assert('city', 'City cannot be empty !').notEmpty();
-  req.assert('pincode', 'Pincode cannot be empty !').notEmpty();
-  req.assert('dob', 'Date of birth cannot be empty !').notEmpty();
-  req.assert('aadharno', 'Invalid Aadhaar number!');
   req.sanitize('email').normalizeEmail({ remove_dots: false });
-
+  console.log("Reqest"+req.body.username+req.body.dob+req.body.gender);
   const errors = req.validationErrors();
-
   if (errors) {
     res.json({ success: false, message: errors });
   }
@@ -86,36 +74,53 @@ exports.postSignup = (req, res, next) => {
     email: req.body.email,
     password: req.body.password
   });
-  res.writeHead(200, {"Content-Type": "application/json"});
-  user.find({$or:[{username:req.body.username},{email:req.body.email},{aadharno:parseInt(req.body.aadharno)}]}).cursor()
-  .on('data', function(existingUser){
-    console.log(existingUser.username);
-    if (existingUser.username == req.body.username) {
-      console.log("username exists");
-      res.write(JSON.stringify({rUname: 'Account with that username already exists' }));
-      return ;
+
+  var Rating = new rating({
+    user: req.body.username,
+
+  })
+  user.find({username:req.body.username},function(error,existingUser){
+    if(existingUser.length){
+      console.log("user exists");
+      /*res.writeHead(200, {"Content-Type": "application/json"});
+      //res.json({ success: false});
+      console.log(existingUser.username);
+      if (existingUser.username == req.body.username) {
+        console.log("username exists");
+        res.write(JSON.stringify({rUname: 'Account with that username already exists' }));
+        return ;
+      }
+      else if (existingUser.email==req.body.email) {
+        console.log("email exists");
+        res.write(JSON.stringify({ rEmail: 'Account with that email already exists' }));
+        return ;
+      }
+      else if (existingUser.aadharno==req.body.aadharno){
+        console.log("aadhar exists");
+        res.write(JSON.stringify({ rAadhar: 'Account with that aadhaar number already exists' }));
+        return ;
+      }
+      res.write(JSON.stringify({ success: false }));
+      res.end();*/
+      res.json({success: false}); 
     }
-    else if (existingUser.email==req.body.email) {
-      console.log("email exists");
-      res.write(JSON.stringify({ rEmail: 'Account with that email already exists' }));
-      return ;
-    }
-    else if (existingUser.aadharno==req.body.aadharno){
-      console.log("aadhar exists");
-      res.write(JSON.stringify({ rAadhar: 'Account with that aadhaar number already exists' }));
-      return ;
-    }
-    User.save((err) => {
-      if (err) { return next(err); }
-    });
-    UserCredentials.save((err) => {
-      if (err) { return next(err); }
-    });
-    res.json({ success: true, message: 'Account saved' });
-    return;
-  });
-  res.write(JSON.stringify({ success: false }));
-  res.end();
+    else{
+      console.log("user doesnt exist");
+      User.save((err) => {
+        if (err) {
+          console.log(err);
+          return next(err); }
+      });
+      UserCredentials.save((err) => {
+        if (err) { return next(err); }
+      });
+      Rating.save((err) =>{
+        if(err) { return next(err);}
+      });
+      res.json({ success: true, message: 'Account saved' });
+      }
+      return;
+  }); 
 };
 
 exports.forgot = (req, res) => {
@@ -177,18 +182,29 @@ exports.getProfile = (req,res,next) =>{
   user.findOne({ username: req.body.username }, (err, existingUser) => {
     if (err) { return next(err); }
     if (existingUser) {
-      res.json({
-        success: true,
-        username: existingUser.username,
-        email: existingUser.email,
-        gender: existingUser.gender,
-        number: existingUser.number,
-        dob: existingUser.dob,
-        state: existingUser.state,
-        city: existingUser.city,
-        pincode :existingUser.pincode,
-        points :existingUser.points
-      });
+      rating.findOne({user:existingUser.username}, (err, rating) => {
+        if (err) { return next(err); }
+        if (rating) {
+        res.json({
+          success: true,
+          username: existingUser.username,
+          email: existingUser.email,
+          gender: existingUser.gender,
+          number: existingUser.number,
+          dob: existingUser.dob,
+          state: existingUser.state,
+          city: existingUser.city,
+          pincode :existingUser.pincode,
+          points :existingUser.points,
+          paxRating:rating.paxRating,
+          driverRating:rating.driverRating
+        });
+      }
+      else{
+        console.log("No user in rating table");
+        res.json({success:false});
+      }
+    });
     }
     else
       res.json({success: false,message: 'no existing user'});

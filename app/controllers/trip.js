@@ -7,7 +7,7 @@ const completedtrips         = require('../models/completedTrips');
 const cancelledtrips         = require('../models/cancelledTrips');
 
 exports.getTripDetails = (req,res,next) =>{
-  console.log(req.body);
+  console.log("req"+req.body);
   if(req.body.role=="driver"){
     trip.findOne({$and:[{_id:req.body._id},{status:'OTG'}]}, (err, existingRide) => {
       if (err) { return next(err); }

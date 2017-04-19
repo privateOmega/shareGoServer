@@ -16,13 +16,14 @@ const expressStatusMonitor  = require('express-status-monitor');
 const multer                = require('multer');
 const bcrypt                = require('bcrypt-nodejs');
 const nodemailer            = require('nodemailer');
+const expressWs             = require('express-ws')(app);
 // Configurations
 const config                = require('./app/configurations/config');
 const port                  = process.env.PORT || 8080;
 // Controllers
 const userController        = require('./app/controllers/user');
 const tripController        = require('./app/controllers/trip');
-
+const ratingController      = require('./app/controllers/rating');
 // Mongo connect statements
 mongoose.Promise            = global.Promise;
 var options = { server: { socketOptions: { keepAlive: 300000, connectTimeoutMS: 30000 } },
@@ -52,6 +53,14 @@ app.get('/', function(req, res) {
 app.post('/login',userController.postLogin);
 app.post('/signup', userController.postSignup);
 app.post('/forgot', userController.forgot);
+
+//WEBSOCKETS
+apiRoutes.ws('/echo', function(ws, req) {
+  ws.on('message', function(msg) {
+    console.log("\nThe WEBSOCKETS message is"+msg);
+  });
+});
+
 app.use('/logged/', apiRoutes);
 apiRoutes.use(function(req, res, next) {
   var token = req.body.token || req.query.token || req.headers['x-access-token'];
@@ -83,6 +92,7 @@ apiRoutes.post('/unBlock', userController.unBlockUser);
 apiRoutes.post('/newTrip', tripController.createTrip);
 apiRoutes.post('/getTrip', tripController.getTrip);
 apiRoutes.post('/getTripDetails', tripController.getTripDetails);
+apiRoutes.post('/setRating',ratingController.setRating);
 //app.post('/reset/:token', userController.postReset);
 
 

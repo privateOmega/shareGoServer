@@ -8,7 +8,7 @@ var tripSchema = new mongoose.Schema({
   endLatitude: {type:String, required: true},
   endLongitude: {type:String, required: true},
   user: { type: String, required: true},
-  seats: { type: String, required: true},
+  seats: { type: Number, required: true},
   time:{ type: String, required: true },
   routeId:{ type: String, required: true},
   latitude:{ type: String, required: true},
