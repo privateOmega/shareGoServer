@@ -153,7 +153,7 @@ exports.passengerJoinTrip = (req, res, next) => {
     startLatitude:req.body.startLatitude,
     startLongitude:req.body.startLongitude,
     currentLatitude:req.body.currentLatitude,
-    currentLongitude:req.body.startLongitude,
+    currentLongitude:req.body.currentLongitude,
     endLatitude:req.body.endLatitude,
     endLongitude:req.body.endLongitude,
     driver:'NoOneRightNow'
@@ -220,7 +220,7 @@ exports.paxConnectToDriver = (req, res, next) => {
            tripUser.pId.push(req.body.paxUser);
            tripUser.save(function (err) {
              if(err) console.error('ERROR!');
-            res.json({ success: true});
+            res.json({ success: true,_id:tripUser._id });
             
            });
           }
@@ -405,13 +405,17 @@ exports.endTrip = (req, res, next) => {
   {
       passengertrip.findOne({username:req.body.username}, function(err,existingTrip){
         if (existingTrip) {
-              console.log("Trip exists !");
-             var  isDestinationReached = extraFunctions.checkDestinationReached(currentLatitude,currentLongitude,existingTrip.endLatitude,existingRide.endLongitude);
+              console.log("Pax  2 Trip exists !");
+           //  var  isDestinationReached = extraFunctions.checkDestinationReached(req.body.currentLatitude,req.body.currentLongitude,existingTrip.endLatitude,existingTrip.endLongitude);
+              var  isDestinationReached = extraFunctions.checkDestinationReached("8.490872","76.95274",existingTrip.endLatitude,existingTrip.endLongitude);
+              
              if(isDestinationReached) {
-            console.log('Destination is reached');
-             passengertrip.remove({ _id: req.body._id }, function(err)
-             {
-                     console.log("RIDE DELETED from pax");
+              console.log('Destination is reached');
+              passengertrip.remove({ username: req.body.username }, function(err)
+              {
+                    if(err) console.log('cudnt delete pax trip');
+
+                     else console.log("RIDE DELETED from pax");
                      var completedTrips= new completedtrips({
                           startLatitude:existingTrip.startLatitude,
                           startLongitude:existingTrip.startLongitude,
@@ -428,28 +432,54 @@ exports.endTrip = (req, res, next) => {
                       console.log('SAVEd completedTrips');
                       });
              });
-               var  distanceCovered = extraFunctions.findDistanceCovered(existingTrip.startLatitude,existingTrip.startLongitude,currentLatitude,currentLongitude);
-               user.findOneAndUpdate({username: existingTrip.driver}, {$inc:{points:distanceCovered}}, {new: true}, function(err, doc){
-                  if(err){
-                      console.log("Something wrong when updating data!");
-                  }
+               //var  distanceCovered = extraFunctions.findDistanceCovered(existingTrip.startLatitude,existingTrip.startLongitude,req.body.currentLatitude,req.body.currentLongitude);
+               var  distanceCovered = extraFunctions.findDistanceCovered(existingTrip.startLatitude,existingTrip.startLongitude,existingTrip.endLatitude,existingTrip.endLongitude);
+               console.log('\nDC '+ distanceCovered);
+               console.log('\nDriver '+ existingTrip.driver);
 
-                  console.log("Success..Points allocated !"+ doc);
-              });
-               passengertrip.findOneAndUpdate({username: req.body.username}, {$inc:{points:-distanceCovered}}, {new: true}, function(err, doc){
-                  if(err){
-                      console.log("Something wrong when updating data!");
-                  }
 
-                  console.log("Success..Points de-allocated !"+ doc);
+              
+              user.findOne({username: existingTrip.driver}, function (err, uservar) {
+                uservar.points = uservar.points+distanceCovered+10;
+                uservar.save(function (err) {
+                    if(err) {
+                        console.error('ERROR in saving driver points!');
+                    }
+                });
               });
-           
+
+             
+
+                user.findOne({username: req.body.username}, function (err, uservar) {
+                uservar.points = uservar.points-distanceCovered-10;
+                uservar.save(function (err) {
+                    if(err) {
+                        console.error('ERROR in saving pax points!');
+                    }
+                });
+            });
+               console.log('INSIDE END TRIP SUCCES CONDITION');
+              res.json({success:true});
            }
+           else {
+                      res.json({success:false});
+                      console.log('STILL HAVE PAXES');
+
+                      return;
+                }
+           
+          } else { 
+            res.json({success:false});
+            console.log('No such Pax found');
+            return;
+
+
           }
+
         });
-      res.json({success:true});
+      
       return;
   }
-  res.json({success:false});
+  
 
 };
