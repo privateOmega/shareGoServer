@@ -27,7 +27,7 @@ exports.checkDestinationReached = (currentLatitude,currentLongitude,endLatitude,
 	  "features": [currentLocation, destinationLocation]
 	};
 	var remainingDistance = turf(currentLocation, destinationLocation, units);
-	if(remainingDistance<=0.01)
+	if(remainingDistance<=0.3)
 		successValue=true;
 	else
      	successValue=false;

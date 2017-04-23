@@ -12,6 +12,7 @@ var passengersSchema = new mongoose.Schema({
   currentLongitude: { type: String, required: true, unique: true },
   endLatitude: { type: String, required: true, unique: true },
   endLongitude: { type: String, required: true, unique: true },
+  driver: { type: String, required: true, unique: true },
   
 }, { timestamps: true });
 
