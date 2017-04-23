@@ -5,10 +5,10 @@ const passengertrip         = require('../models/passengers');
 const extraFunctions         = require('../functions/trip');
 const completedtrips         = require('../models/completedTrips');
 const cancelledtrips         = require('../models/cancelledTrips');
-var gm = require('googlemaps');
-var util = require('util');
-gm.config('key', 'AIzaSyBgSQD0eQwv5nrZR1AYnjXgZknZR6oDazQ');
 
+var googleMapsClient = require('@google/maps').createClient({
+  key: 'AIzaSyBgSQD0eQwv5nrZR1AYnjXgZknZR6oDazQ'
+});
 
 exports.getTripDetails = (req,res,next) =>{
   console.log("req"+req.body);
@@ -83,9 +83,18 @@ exports.createTrip = (req, res, next) => {
   if (errors) {
     res.json({ success: false, message: errors });
   }
-  gm.directions(req.body.startLatitude+','+req.body.startLongitude, req.body.endLatitude+','+req.body.endLongitude , function(err, data){
-    console.log('\n\nroute data'+data);
-  });
+
+
+
+  googleMapsClient.directions({
+      origin: 'Town Hall, Sydney, NSW',
+      destination: 'Parramatta, NSW',
+    },function(err,response) {
+      console.log('\n\nresponse is'+response.routes.overview_polyline);
+    });
+
+
+
   console.log(req.body.user);
   var Trip = new trip({
     vId:req.body.vId,
