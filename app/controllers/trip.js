@@ -23,7 +23,8 @@ exports.getTripDetails = (req,res,next) =>{
           endLatitude: existingRide.endLatitude,
           endLongitude: existingRide.endLongitude,
           latitude: existingRide.latitude,
-          longitude: existingRide.longitude
+          longitude: existingRide.longitude,
+          routeId: existingRide.routeId
         });
       }
     });
@@ -84,51 +85,59 @@ exports.createTrip = (req, res, next) => {
     res.json({ success: false, message: errors });
   }
 
-
-
+  console.log(req.body.startLatitude+' '+req.body.startLongitude+' '+req.body.endLatitude+' '+req.body.endLongitude);
+  var route;
   googleMapsClient.directions({
-      origin: 'Town Hall, Sydney, NSW',
-      destination: 'Parramatta, NSW',
+      origin:  {
+        "lat" : parseFloat(req.body.startLatitude),
+        "lng" : parseFloat(req.body.startLongitude)
+      },
+      destination:  {
+        "lat" : parseFloat(req.body.endLatitude),
+        "lng" : parseFloat(req.body.endLongitude)
+      },
     },function(err,response) {
-      console.log('\n\nresponse is'+JSON.stringify(response));
+      console.log('\n\nresponse is'+JSON.stringify(response.json.routes[0].overview_polyline.points));
+      route=JSON.stringify(response.json.routes[0].overview_polyline.points);
+      console.log('Route is'+route);
+      route = route.replace(/"/g,"");
+      console.log(req.body.user);
+      var Trip = new trip({
+        vId:req.body.vId,
+        status:'OTG',
+        startLatitude:req.body.startLatitude,
+        startLongitude:req.body.startLongitude,
+        endLatitude:req.body.endLatitude,
+        endLongitude:req.body.endLongitude,
+        user:req.body.user,
+        seats:req.body.seats,
+        time:req.body.time,
+        routeId:route,
+        latitude:req.body.latitude,
+        longitude:req.body.longitude,
+        date:req.body.date,
+        passengerCount:0
+      });
+      trip.find({$and:[{user:req.body.user},{status:'OTG'}]}, function(err,existingRide){
+         if(existingRide.length){
+          res.json({ success: false});
+        }
+        else{
+          console.log("none whatsover haha");
+          Trip.save((err,trip) => {
+            if (err) {
+              console.log(err);
+              return next(err);
+            }
+            console.log("found trip id as "+trip._id);
+            res.json({ success: true, _id: trip._id});
+          });
+          return;
+        }
+      });
     });
 
 
-
-  console.log(req.body.user);
-  var Trip = new trip({
-    vId:req.body.vId,
-    status:'OTG',
-    startLatitude:req.body.startLatitude,
-    startLongitude:req.body.startLongitude,
-    endLatitude:req.body.endLatitude,
-    endLongitude:req.body.endLongitude,
-    user:req.body.user,
-    seats:req.body.seats,
-    time:req.body.time,
-    routeId:req.body.routeId,
-    latitude:req.body.latitude,
-    longitude:req.body.longitude,
-    date:req.body.date,
-    passengerCount:0
-  });
-  trip.find({$and:[{user:req.body.user},{status:'OTG'}]}, function(err,existingRide){
-     if(existingRide.length){
-      res.json({ success: false});
-    }
-    else{
-      console.log("none whatsover haha");
-      Trip.save((err,trip) => {
-        if (err) {
-          console.log(err);
-          return next(err);
-        }
-        console.log("found trip id as "+trip._id);
-        res.json({ success: true, _id: trip._id});
-      });
-      return;
-    }
-  });
 };
 
 exports.passengerJoinTrip = (req, res, next) => {
