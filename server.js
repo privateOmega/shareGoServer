@@ -101,6 +101,7 @@ apiRoutes.post('/matchPaxtoDriver', tripController.passengerMatchAllDrivers);
 apiRoutes.post('/connectPaxToDriver', tripController.paxConnectToDriver);
 apiRoutes.post('/SOS', userController.sos);
 apiRoutes.post('/cancelTrip', tripController.cancelTrip);
+apiRoutes.post('/endTrip', tripController.endTrip);
 
 //app.post('/reset/:token', userController.postReset);
 

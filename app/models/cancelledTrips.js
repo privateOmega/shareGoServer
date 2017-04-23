@@ -1,6 +1,8 @@
-const mongoose 	= require('mongoose');
+const bcrypt  = require('bcrypt-nodejs');
+const crypto  = require('crypto');
+const mongoose  = require('mongoose');
 
-var cancelledTrips = new mongoose.Schema({
+var cancelledTripsSchema = new mongoose.Schema({
   startLatitude: {type:String, required: true},
   startLongitude: {type:String, required: true},
   endLatitude: {type:String, required: true},
@@ -14,5 +16,5 @@ var cancelledTrips = new mongoose.Schema({
  }, { timestamps: true });
 
 // CREATE MODEL
-var cancelledTrips = mongoose.model('cancelledTrip', cancelledTrips);
+var cancelledTrips = mongoose.model('cancelledTrips', cancelledTripsSchema);
 module.exports = cancelledTrips;

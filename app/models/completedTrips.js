@@ -1,6 +1,6 @@
 const mongoose 	= require('mongoose');
 
-var completedTrips = new mongoose.Schema({
+var completedTripsSchema = new mongoose.Schema({
   startLatitude: {type:String, required: true},
   startLongitude: {type:String, required: true},
   endLatitude: {type:String, required: true},
@@ -13,5 +13,5 @@ var completedTrips = new mongoose.Schema({
  }, { timestamps: true });
 
 // CREATE MODEL
-var completedTrips = mongoose.model('completedTrips', completedTrips);
+var completedTrips = mongoose.model('completedTrips', completedTripsSchema);
 module.exports = completedTrips;
