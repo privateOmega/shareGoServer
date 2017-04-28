@@ -30,7 +30,7 @@ exports.getTripDetails = (req,res,next) =>{
     });
   }
   else if(req.body.role== "pax"){
-    console.log("pax role");
+    console.log("pax role"+req.body._id);
             
       passengertrip.findOne({_id:req.body._id}, (err, existingRide2) => {
         if (err) { 
