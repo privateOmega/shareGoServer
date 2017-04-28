@@ -39,36 +39,36 @@ exports.getTripDetails = (req,res,next) =>{
         if (existingRide2) {
           console.log("Found existing ride"+existingRide2);
           var route;
-          googleMapsClient.directions({
-            origin:  {
-              "lat" : parseFloat(existingRide2.startLatitude),
-              "lng" : parseFloat(existingRide2.startLongitude)
-            },
-            destination:  {
-              "lat" : parseFloat(existingRide2.endLatitude),
-              "lng" : parseFloat(existingRide2.startLongitude)
-            },
-          },function(err,response) {
-            console.log('\n\nresponse is'+JSON.stringify(response.json.routes[0].overview_polyline.points));
-            route=JSON.stringify(response.json.routes[0].overview_polyline.points);
-            console.log('Route is'+route);
-            route = route.replace(/"/g,"");
-            res.json({
-              success: true,
-              startLatitude: existingRide2.startLatitude,
-              startLongitude: existingRide2.startLongitude,
-              endLatitude: existingRide2.endLatitude,
-              endLongitude: existingRide2.endLongitude,
-              latitude: existingRide2.currentLatitude,
-              longitude: existingRide2.currentLongitude,
-              driver: existingRide2.driver,
-              routeId: route
+            googleMapsClient.directions({
+              origin:  {
+                "lat" : parseFloat(existingRide2.startLatitude),
+                "lng" : parseFloat(existingRide2.startLongitude)
+              },
+              destination:  {
+                "lat" : parseFloat(existingRide2.endLatitude),
+                "lng" : parseFloat(existingRide2.startLongitude)
+              },
+            },function(err,response) {
+              console.log('\n\nresponse is'+JSON.stringify(response.json.routes[0].overview_polyline.points));
+              route=JSON.stringify(response.json.routes[0].overview_polyline.points);
+              console.log('Route is'+route);
+              route = route.replace(/"/g,"");
+              res.json({
+                success: true,
+                startLatitude: existingRide2.startLatitude,
+                startLongitude: existingRide2.startLongitude,
+                endLatitude: existingRide2.endLatitude,
+                endLongitude: existingRide2.endLongitude,
+                latitude: existingRide2.currentLatitude,
+                longitude: existingRide2.currentLongitude,
+                driver: existingRide2.driver,
+                routeId: route
+              });
             });
-          });
-          else
-            res.json({success:false});
           return;
         }
+        else
+            res.json({success:false});
       });
   }
 };
