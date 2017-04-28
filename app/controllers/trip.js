@@ -31,9 +31,11 @@ exports.getTripDetails = (req,res,next) =>{
   }
   else if(req.body.role== "pax"){
     console.log("pax role");
-          
+            
       passengertrip.findOne({_id:req.body._id}, (err, existingRide2) => {
-        if (err) { return next(err); }
+        if (err) { 
+          console.log(err);
+          return next(err); }
         if (existingRide2) {
           console.log("Found existing ride");
           var route;
