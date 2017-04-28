@@ -37,7 +37,7 @@ exports.getTripDetails = (req,res,next) =>{
           console.log(err);
           return next(err); }
         if (existingRide2) {
-          console.log("Found existing ride");
+          console.log("Found existing ride"+existingRide2);
           var route;
           googleMapsClient.directions({
             origin:  {
@@ -65,7 +65,9 @@ exports.getTripDetails = (req,res,next) =>{
               routeId: route
             });
           });
-          
+          else
+            res.json({success:false});
+          return;
         }
       });
   }
