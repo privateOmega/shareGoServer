@@ -33,16 +33,34 @@ exports.getTripDetails = (req,res,next) =>{
       passengertrip.findOne({$and:[{_id:req.body._id},{status:'OTG'}]}, (err, existingRide2) => {
         if (err) { return next(err); }
         if (existingRide2) {
-          res.json({
-            success: true,
-            startLatitude: existingRide2.startLatitude,
-            startLongitude: existingRide2.startLongitude,
-            endLatitude: existingRide2.endLatitude,
-            endLongitude: existingRide2.endLongitude,
-            latitude: existingRide2.currentLatitude,
-            longitude: existingRide2.currentLongitude,
-            driver: existingRide2.driver
+          var route;
+          googleMapsClient.directions({
+            origin:  {
+              "lat" : parseFloat(existingRide2.startLatitude),
+              "lng" : parseFloat(existingRide2.startLongitude)
+            },
+            destination:  {
+              "lat" : parseFloat(existingRide2.endLatitude),
+              "lng" : parseFloat(existingRide2.startLongitude)
+            },
+          },function(err,response) {
+            console.log('\n\nresponse is'+JSON.stringify(response.json.routes[0].overview_polyline.points));
+            route=JSON.stringify(response.json.routes[0].overview_polyline.points);
+            console.log('Route is'+route);
+            route = route.replace(/"/g,"");
+            res.json({
+              success: true,
+              startLatitude: existingRide2.startLatitude,
+              startLongitude: existingRide2.startLongitude,
+              endLatitude: existingRide2.endLatitude,
+              endLongitude: existingRide2.endLongitude,
+              latitude: existingRide2.currentLatitude,
+              longitude: existingRide2.currentLongitude,
+              driver: existingRide2.driver,
+              routeId: route
+            });
           });
+          
         }
       });
   }
