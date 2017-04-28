@@ -87,6 +87,7 @@ apiRoutes.get('/', function(req, res) {
 });
 
 apiRoutes.get('/logout', userController.logout);
+
 apiRoutes.post('/profile', userController.getProfile);
 apiRoutes.post('/updateAccount', userController.postUpdateProfile);
 apiRoutes.post('/getBlock', userController.getBlockedList);

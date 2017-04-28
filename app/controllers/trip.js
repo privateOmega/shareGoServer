@@ -80,6 +80,25 @@ exports.getTrip = (req,res,next) =>{
   });
 };
 
+exports.otg = (req,res,next) =>{
+  console.log(req.body.user);
+  trip.find({status:'OTG'}, (err, existingRide) => {
+    if (err) { return next(err); }
+    if (existingRide.length) {
+      var rideMap = {};
+      existingRide.forEach(function(user) {
+        rideMap[user._id] = user;
+      });
+      console.log("Ridemap");
+      console.log(rideMap);
+      res.json({success:true,ridemap:rideMap});
+
+    }
+    else
+      res.json({success:false});
+  });
+};
+
 exports.createTrip = (req, res, next) => {
   const errors = req.validationErrors();
   if (errors) {
