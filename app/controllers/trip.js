@@ -33,6 +33,7 @@ exports.getTripDetails = (req,res,next) =>{
       passengertrip.findOne({$and:[{_id:req.body._id},{status:'OTG'}]}, (err, existingRide2) => {
         if (err) { return next(err); }
         if (existingRide2) {
+          console.log("Found existing ride2");
           var route;
           googleMapsClient.directions({
             origin:  {
